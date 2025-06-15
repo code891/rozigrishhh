@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розыгрыши - Мини Приложение</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Загрузочный экран -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loader"></div>
+            <p>Загрузка...</p>
+        </div>
+
+        <!-- Главная страница -->
+        <div id="main-page" class="page hidden">
+            <header class="app-header">
+                <div class="header-content">
+                    <h1>🎉 Розыгрыши</h1>
+                    <div class="header-actions">
+                        <div class="balance-display">
+                            <span class="balance-icon">🎫</span>
+                            <span id="user-balance">0</span>
+                        </div>
+                        <button id="theme-toggle" class="theme-toggle">🌙</button>
+                        <button id="settings-btn" class="settings-btn">⚙️</button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <!-- Навигационные табы -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="giveaways">🎁 Розыгрыши</button>
+                    <button class="tab-btn" data-tab="profile">👤 Профиль</button>
+                    <button class="tab-btn" data-tab="earn">💰 Заработать</button>
+                    <button class="tab-btn admin-only hidden" data-tab="admin">⚙️ Админ</button>
+                </div>
+
+                <!-- Вкладка розыгрышей -->
+                <div id="giveaways-tab" class="tab-content active">
+                    <div class="section-header">
+                        <h2>Активные розыгрыши</h2>
+                        <button id="refresh-giveaways" class="refresh-btn">🔄</button>
+                    </div>
+                    <div id="giveaways-list" class="giveaways-list">
+                        <!-- Розыгрыши будут загружены динамически -->
+                    </div>
+                </div>
+
+                <!-- Вкладка профиля -->
+                <div id="profile-tab" class="tab-content">
+                    <div class="profile-section">
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                <span id="profile-initials">👤</span>
+                            </div>
+                            <div class="profile-info">
+                                <h3 id="profile-name">Загрузка...</h3>
+                                <p id="profile-id">ID: -</p>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">🎫</div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="total-tickets">0</span>
+                                    <span class="stat-label">Всего билетов</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="active-participations">0</span>
+                                    <span class="stat-label">Участий</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">👥</div>
+                                <div class="stat-info">
+                                    <span class="stat-value" id="referrals-count">0</span>
+                                    <span class="stat-label">Рефералов</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <button class="profile-btn" onclick="showMyTickets()">
+                                <span class="btn-icon">🎟️</span>
+                                Мои билеты
+                            </button>
+                            <button class="profile-btn" onclick="showPastGiveaways()">
+                                <span class="btn-icon">📜</span>
+                                История участий
+                            </button>
+                            <button class="profile-btn" onclick="showReferrals()">
+                                <span class="btn-icon">👥</span>
+                                Мои рефералы
+                            </button>
+                        </div>
+
+                        <div id="expiring-tickets-info" class="expiring-info hidden">
+                            <div class="warning-card">
+                                <div class="warning-icon">⏰</div>
+                                <div class="warning-text">
+                                    <h4>Сгораемые билеты</h4>
+                                    <p id="expiring-details">-</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Вкладка заработка -->
+                <div id="earn-tab" class="tab-content">
+                    <div class="earn-section">
+                        <h2>Способы заработка билетов</h2>
+                        
+                        <div class="earn-methods">
+                            <div class="earn-card">
+                                <div class="earn-icon">📸</div>
+                                <div class="earn-content">
+                                    <h3>Сделай сторис</h3>
+                                    <p>Получи 50 билетов за публикацию сторис о нашем боте</p>
+                                    <button class="earn-btn" onclick="makeStory()">+50 билетов</button>
+                                </div>
+                            </div>
+
+                            <div class="earn-card" id="subscription-card">
+                                <div class="earn-icon">📢</div>
+                                <div class="earn-content">
+                                    <h3>Подпишись на каналы</h3>
+                                    <p>Получи 10 билетов за подписку на все наши каналы (срок 15 дней)</p>
+                                    <button class="earn-btn" id="subscription-btn" onclick="checkSubscriptions()">Проверить подписки</button>
+                                </div>
+                            </div>
+
+                            <div class="earn-card">
+                                <div class="earn-icon">👥</div>
+                                <div class="earn-content">
+                                    <h3>Пригласи друзей</h3>
+                                    <p>Получи 1 билет за каждого активного друга (10+ билетов)</p>
+                                    <div class="referral-stats">
+                                        <span>Приглашено: <span id="referral-count">0</span></span>
+                                        <span>Заработано: <span id="referral-earned">0</span></span>
+                                    </div>
+                                    <button class="earn-btn" onclick="shareReferralLink()">Поделиться ссылкой</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Админ панель -->
+                <div id="admin-tab" class="tab-content admin-only">
+                    <div class="admin-section">
+                        <h2>Панель администратора</h2>
+                        
+                        <div class="admin-navigation">
+                            <button class="admin-nav-btn active" data-section="overview">📊 Обзор</button>
+                            <button class="admin-nav-btn" data-section="giveaways">🎁 Розыгрыши</button>
+                            <button class="admin-nav-btn" data-section="users">👥 Пользователи</button>
+                            <button class="admin-nav-btn" data-section="statistics">📈 Статистика</button>
+                        </div>
+
+                        <!-- Обзор -->
+                        <div id="admin-overview" class="admin-content active">
+                            <div class="stats-grid">
+                                <div class="admin-stat-card">
+                                    <h3 id="total-users">0</h3>
+                                    <p>Всего пользователей</p>
+                                </div>
+                                <div class="admin-stat-card">
+                                    <h3 id="active-giveaways-count">0</h3>
+                                    <p>Активные розыгрыши</p>
+                                </div>
+                                <div class="admin-stat-card">
+                                    <h3 id="total-tickets-issued">0</h3>
+                                    <p>Всего билетов</p>
+                                </div>
+                                <div class="admin-stat-card">
+                                    <h3 id="completed-giveaways-count">0</h3>
+                                    <p>Завершено</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Управление розыгрышами -->
+                        <div id="admin-giveaways" class="admin-content">
+                            <div class="section-header">
+                                <h3>Управление розыгрышами</h3>
+                                <button class="primary-btn" onclick="showCreateGiveaway()">+ Создать розыгрыш</button>
+                            </div>
+                            <div id="admin-giveaways-list" class="admin-giveaways-list">
+                                <!-- Розыгрыши для админа -->
+                            </div>
+                        </div>
+
+                        <!-- Управление пользователями -->
+                        <div id="admin-users" class="admin-content">
+                            <div class="section-header">
+                                <h3>Управление пользователями</h3>
+                                <input type="text" id="user-search" placeholder="Поиск по ID или имени..." class="search-input">
+                            </div>
+                            <div class="user-actions">
+                                <button class="admin-btn" onclick="showAddTickets()">💰 Начислить билеты</button>
+                                <button class="admin-btn" onclick="showRemoveTickets()">💸 Списать билеты</button>
+                                <button class="admin-btn danger" onclick="showBanUser()">🚫 Забанить пользователя</button>
+                                <button class="admin-btn success" onclick="showUnbanUser()">✅ Разбанить пользователя</button>
+                            </div>
+                            <div id="user-management-result" class="result-area"></div>
+                        </div>
+
+                        <!-- Статистика -->
+                        <div id="admin-statistics" class="admin-content">
+                            <h3>Детальная статистика</h3>
+                            <div id="detailed-stats" class="detailed-stats">
+                                <!-- Детальная статистика -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Модальные окна -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal" id="main-modal">
+                <div class="modal-header">
+                    <h3 id="modal-title">Заголовок</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-content" id="modal-content">
+                    <!-- Контент модального окна -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Уведомления -->
+        <div id="notifications-container" class="notifications-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
